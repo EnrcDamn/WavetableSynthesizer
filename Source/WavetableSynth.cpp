@@ -61,7 +61,6 @@ void WavetableSynth::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         const auto midiEventSample = static_cast<int>(midiEvent.getTimeStamp());
 
         // Render everything from buf[0] -> buf[midiEventSample]
-        // TODO: implement render()
         render(buffer, currentSample, midiEventSample);
         handleMidiEvent(midiEvent);
         currentSample = midiEventSample;
@@ -69,6 +68,29 @@ void WavetableSynth::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
     // last cycle: buf[currentSample] -> buf[-end-]
     render(buffer, currentSample, buffer.getNumSamples());
 }
+ 
+
+void WavetableSynth::render(juce::AudioBuffer<float>& buffer, 
+    int startSample, int endSample)
+{
+    auto* firstChannel = buffer.getWritePointer(0);
+    for (auto& oscillator : oscillators)
+    {
+        if (oscillator.isPlaying())
+        {
+            for (auto sample = startSample; sample < endSample; ++sample)
+            {
+                firstChannel[sample] += oscillator.getSample();
+            }
+        }
+    }
+
+    for (auto channel = 1; channel < buffer.getNumChannels(); ++channel)
+    {
+        std::copy(firstChannel + startSample, firstChannel + endSample, buffer.getWritePointer(channel) + startSample);
+    }
+}
+
 
 void WavetableSynth::handleMidiEvent(const juce::MidiMessage& midiEvent)
 {

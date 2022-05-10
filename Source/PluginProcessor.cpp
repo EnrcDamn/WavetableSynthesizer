@@ -8,7 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Synth.h"
 
 //==============================================================================
 SynthAudioProcessor::SynthAudioProcessor()
@@ -132,22 +131,10 @@ bool SynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) co
 void SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        // clear audio buffer to avoid garbage collecting
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            synth.processBlock(buffer, midiMessages);
-        }
-    }
+    
+    // clear audio buffer to avoid garbage collecting
+    buffer.clear();
+    synth.processBlock(buffer, midiMessages);
 }
 
 //==============================================================================

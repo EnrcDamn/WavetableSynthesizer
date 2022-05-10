@@ -24,6 +24,7 @@ private:
     std::vector<float> generateSineWaveTable();
     void handleMidiEvent(const juce::MidiMessage& midiEvent);
     float midiNoteNumberToFrequency(int midiNoteNumber);
+    void render(juce::AudioBuffer<float>& buffer, int startSample, int endSample);
 
     double sampleRate;
     std::vector<WavetableOscillator> oscillators;
