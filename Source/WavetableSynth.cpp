@@ -13,6 +13,7 @@
 void WavetableSynth::prepareToPlay(double sampleRate) 
 {
     this->sampleRate = sampleRate;
+
 }
 
 
@@ -29,7 +30,7 @@ void WavetableSynth::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         const auto midiEventSample = static_cast<int>(midiEvent.getTimeStamp());
 
         // Render everything from buf[0] -> buf[midiEventSample]
-        // TODO: implement render(), handleMidiEvent()
+        // TODO: implement render()
         render(buffer, currentSample, midiEventSample);
         handleMidiEvent(midiEvent);
         currentSample = midiEventSample;
