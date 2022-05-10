@@ -8,12 +8,43 @@
   ==============================================================================
 */
 
+
 #include "WavetableSynth.h"
+
+
+std::vector<float> WavetableSynth::generateSineWaveTable()
+{
+    constexpr auto WAVETABLE_LENGTH = 64;
+
+    std::vector<float> sineWaveTable(WAVETABLE_LENGTH);
+
+    for (auto i = 0; i < WAVETABLE_LENGTH; ++i)
+    {
+        sineWaveTable[i] = std::sinf(2.f * juce::float_Pi * 
+                            static_cast<float>(i) / static_cast<float>(WAVETABLE_LENGTH));
+    }
+    return sineWaveTable;
+}
+
+
+void WavetableSynth::initializeOscillators()
+{
+    // 128 as the midi notes number
+    constexpr auto OSCILLATORS_COUNT = 128;
+    const auto waveTable = generateSineWaveTable();
+
+    // clear oscillators first
+    oscillators.clear();
+    for (auto i = 0; i < OSCILLATORS_COUNT; ++i)
+    {
+        oscillators.emplace_back(waveTable, sampleRate);
+    }
+}
 
 void WavetableSynth::prepareToPlay(double sampleRate) 
 {
     this->sampleRate = sampleRate;
-
+    initializeOscillators();
 }
 
 
@@ -35,6 +66,7 @@ void WavetableSynth::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
         handleMidiEvent(midiEvent);
         currentSample = midiEventSample;
     }
+    // last cycle: buf[currentSample] -> buf[-end-]
     render(buffer, currentSample, buffer.getNumSamples());
 }
 
@@ -48,11 +80,15 @@ void WavetableSynth::handleMidiEvent(const juce::MidiMessage& midiEvent)
     }
     else if (midiEvent.isNoteOff())
     {
-
+        const auto oscillatorId = midiEvent.getNoteNumber();
+        oscillators[oscillatorId].stop();
     }
     else if (midiEvent.isAllNotesOff())
     {
-
+        for (auto& oscillator : oscillators)
+        {
+            oscillator.stop();
+        }
     }
 }
 
