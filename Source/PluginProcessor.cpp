@@ -26,6 +26,9 @@ SynthAudioProcessor::SynthAudioProcessor()
 
 SynthAudioProcessor::~SynthAudioProcessor()
 {
+    synth.addSound(new SynthSound());
+    // TODO: check SynthVoice constructor
+    // synth.addVoice(new SynthVoice());
 }
 
 //==============================================================================
@@ -93,7 +96,16 @@ void SynthAudioProcessor::changeProgramName (int index, const juce::String& newN
 //==============================================================================
 void SynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    synth.prepareToPlay(sampleRate);
+
+
+    synth.setAllSampleRates(sampleRate);
+
+    for (int i = 0; i < synth.getNumVoices(); i++)
+    {
+        synth.getVoice(i);
+    }
+
+    synth.prepare(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
 }
 
 void SynthAudioProcessor::releaseResources()
@@ -131,10 +143,24 @@ bool SynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) co
 void SynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
     
     // clear audio buffer to avoid garbage collecting
     buffer.clear();
-    synth.processBlock(buffer, midiMessages);
+    
+
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<juce::SynthesiserVoice*>(synth.getVoice(i)))
+        {
+            // Osc controls
+            // ADSR
+            // ...
+        }
+    }
+
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
 //==============================================================================
@@ -168,3 +194,6 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SynthAudioProcessor();
 }
+
+
+// TODO: Value tree state

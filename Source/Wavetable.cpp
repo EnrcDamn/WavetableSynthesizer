@@ -18,6 +18,34 @@ WavetableOscillator::WavetableOscillator(std::vector<float> waveTable, double sa
     
 }
 
+void WavetableOscillator::setSampleRate(double newRate)
+{
+    sampleRate = newRate;
+}
+
+
+void WavetableOscillator::initializeOscillators()
+{
+    const auto waveTable = generateSineWaveTable();
+}
+
+std::vector<float> WavetableOscillator::generateSineWaveTable()
+{
+    constexpr auto WAVETABLE_LENGTH = 64;
+
+    std::vector<float> sineWaveTable(WAVETABLE_LENGTH);
+
+    for (auto i = 0; i < WAVETABLE_LENGTH; ++i)
+    {
+        sineWaveTable[i] = std::sinf(2.f * juce::float_Pi *
+            static_cast<float>(i) / static_cast<float>(WAVETABLE_LENGTH));
+    }
+    return sineWaveTable;
+}
+
+
+
+
 void WavetableOscillator::setFrequency(float frequency)
 {
     indexIncrement = frequency * static_cast<float>(waveTable.size()) / 

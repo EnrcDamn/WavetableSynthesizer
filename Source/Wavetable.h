@@ -10,13 +10,16 @@
 
 #pragma once
 
+#include <JuceHeader.h>
 #include <vector>
 
 class WavetableOscillator
 {
 public:
     WavetableOscillator(std::vector<float> waveTable, double sampleRate);
+    void initializeOscillators();
 
+    void setSampleRate(double newRate);
     void setFrequency(float frequency); // return index increment
     float getSample();
 
@@ -25,7 +28,7 @@ public:
 
 private:
     float linearInterpolation();
-
+    std::vector<float> generateSineWaveTable();
     std::vector<float> waveTable;
     double sampleRate;
     float index = 0.f;

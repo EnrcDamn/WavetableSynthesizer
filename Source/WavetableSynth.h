@@ -29,25 +29,49 @@ public:
     void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition) override;
     void stopNote(float velocity, bool allowTailOff) override;
     void controllerMoved(int controllerNumber, int newControllerValue) override;
+    void pitchWheelMoved(int newPitchWheelValue) override;
+    void setAllSampleRate(double rate)
+    {
+        osc.setSampleRate(rate);
+        /*for (auto l : lfos)
+            l->setSampleRate(rate);*/
+        setCurrentPlaybackSampleRate(rate);
+    }
+    void prepare(double sampleRate, int samplesPerBlock, int outputChannel);
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override;
+    float midiNoteNumberToFrequency(int midiNoteNumber);
+   
+private:
+    WavetableOscillator osc;
 
 };
 
 //=====================================================================
 
-class WavetableSynth
+class WavetableSynth : public juce::Synthesiser
 {
 public:
-    void prepareToPlay(double sampleRate);
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&);
+    void setAllSampleRates(double rate)
+    {
+        setCurrentPlaybackSampleRate(rate);
+        for (auto v : voices)
+            v->setAllSampleRate(rate);
+    }
+    void prepare(double rate, int samplesPerBlock, int numChannels)
+    {
+        prepare(rate, samplesPerBlock, numChannels);
+        for (auto v : voices)
+        {
+            v->prepare(rate, samplesPerBlock, numChannels);
+        }
+
+    }
 
 private:
-    void initializeOscillators();
-    std::vector<float> generateSineWaveTable();
     void handleMidiEvent(const juce::MidiMessage& midiEvent);
-    float midiNoteNumberToFrequency(int midiNoteNumber);
     void render(juce::AudioBuffer<float>& buffer, int startSample, int endSample);
 
     double sampleRate;
-    std::vector<WavetableOscillator> oscillators;
+    std::vector<SynthVoice*> voices;
 };
